@@ -12,7 +12,63 @@ const prisma = new PrismaClient();
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.redirect('/api-docs');
+  res.json({
+    name: "Guesser Game API",
+    version: "1.0.0",
+    endpoints: [
+      {
+        method: "POST",
+        path: "/register",
+        description: "Register a new user",
+        body: { email: "string", password: "string", name: "string" },
+        response: { message: "string", userId: "string" }
+      },
+      {
+        method: "POST",
+        path: "/login",
+        description: "Log in a user",
+        body: { email: "string", password: "string" },
+        response: { token: "string" }
+      },
+      {
+        method: "POST",
+        path: "/forgot-password",
+        description: "Request a password reset",
+        body: { email: "string" },
+        response: { message: "string" }
+      },
+      {
+        method: "PUT",
+        path: "/change-password",
+        description: "Change a user's password",
+        body: { userId: "string", oldPassword: "string", newPassword: "string" },
+        response: { message: "string" }
+      },
+      {
+        method: "POST",
+        path: "/leave-message",
+        description: "Leave a new message",
+        body: { userId: "string", message: "string" },
+        response: { message: "string", messageId: "string" }
+      },
+      {
+        method: "GET",
+        path: "/messages",
+        description: "Retrieve all messages",
+        response: { 
+          type: "array",
+          items: {
+            id: "string",
+            content: "string",
+            userId: "string",
+            user: { name: "string" },
+            createdAt: "string",
+            updatedAt: "string"
+          }
+        }
+      }
+    ]
+  });
 });
 
 

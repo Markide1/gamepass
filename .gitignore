@@ -133,9 +133,7 @@ dist
 .env
 
 # Prisma
-Prisma
 prisma.schema
 
 # rest client
-rest client
-rest_client.http
+api.http
