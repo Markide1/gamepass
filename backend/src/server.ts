@@ -4,18 +4,30 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import path from 'path';
+import bodyParser from 'body-parser';
+import cors from 'cors';
 
 dotenv.config();
 
 const app = express();
 const prisma = new PrismaClient();
 
+// Use body-parser to parse JSON requests
+app.use(bodyParser.json());
 app.use(express.json());
+app.use(cors());
+
+// Configure CORS
+const corsOptions = {
+  origin: 'http://localhost:3002', // Specify the frontend URL
+  methods: ['GET', 'POST', 'PUT'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+};
+app.use(cors(corsOptions));
 
 app.get('/', (req, res) => {
   res.send('Welcome to the Guesser Game API');
 });
-
 
 // POST /register
 app.post('/register', async (req, res) => {
@@ -37,7 +49,6 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// POST /login
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -140,7 +151,10 @@ app.get('/messages', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
