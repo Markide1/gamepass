@@ -72,8 +72,6 @@ app.get('/', (req, res) => {
 });
 
 
-
-
 // POST /register
 app.post('/register', async (req, res) => {
   const { email, password, name } = req.body;
