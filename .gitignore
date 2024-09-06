@@ -133,7 +133,14 @@ dist
 .env
 
 # Prisma
-prisma.schema
+prisma
+schema.prisma
+
+# migrations
+migrations
+migration_lock.toml
+migration.sql
+
 
 # rest client
 api.http

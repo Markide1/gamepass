@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config();
 
@@ -12,63 +13,7 @@ const prisma = new PrismaClient();
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.json({
-    name: "Guesser Game API",
-    version: "1.0.0",
-    endpoints: [
-      {
-        method: "POST",
-        path: "/register",
-        description: "Register a new user",
-        body: { email: "string", password: "string", name: "string" },
-        response: { message: "string", userId: "string" }
-      },
-      {
-        method: "POST",
-        path: "/login",
-        description: "Log in a user",
-        body: { email: "string", password: "string" },
-        response: { token: "string" }
-      },
-      {
-        method: "POST",
-        path: "/forgot-password",
-        description: "Request a password reset",
-        body: { email: "string" },
-        response: { message: "string" }
-      },
-      {
-        method: "PUT",
-        path: "/change-password",
-        description: "Change a user's password",
-        body: { userId: "string", oldPassword: "string", newPassword: "string" },
-        response: { message: "string" }
-      },
-      {
-        method: "POST",
-        path: "/leave-message",
-        description: "Leave a new message",
-        body: { userId: "string", message: "string" },
-        response: { message: "string", messageId: "string" }
-      },
-      {
-        method: "GET",
-        path: "/messages",
-        description: "Retrieve all messages",
-        response: { 
-          type: "array",
-          items: {
-            id: "string",
-            content: "string",
-            userId: "string",
-            user: { name: "string" },
-            createdAt: "string",
-            updatedAt: "string"
-          }
-        }
-      }
-    ]
-  });
+  res.send('Welcome to the Guesser Game API');
 });
 
 
@@ -97,28 +42,32 @@ app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    // First, try to find the user by email
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (user && await bcrypt.compare(password, user.password)) {
+      // If the user exists and the password is correct, log them in
       const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
-      res.json({ token });
-    } else {
-      // Check if the password matches another user's password
-      const otherUser = await prisma.user.findFirst({
-        where: {
-          password: await bcrypt.hash(password, 10)
-        }
-      });
+      return res.json({ token });
+    }
 
-      if (otherUser) {
-        res.status(401).json({
-          message: `You entered "${otherUser.name}"'s password, maybe your email is "${otherUser.email}"?`
+    // If the login failed, check if the password matches any other user
+    const allUsers = await prisma.user.findMany();
+    
+    for (const otherUser of allUsers) {
+      if (await bcrypt.compare(password, otherUser.password)) {
+        // We found a user with a matching password
+        return res.status(401).json({
+          message: `You've entered ${otherUser.name}'s password, maybe your email is ${otherUser.email}?`
         });
-      } else {
-        res.status(401).json({ message: 'Invalid credentials' });
       }
     }
+
+    // If we get here, no matching password was found
+    res.status(401).json({ message: 'Invalid credentials' });
+
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
